@@ -15,7 +15,7 @@ function(add_example name)
       $<$<CXX_COMPILER_ID:MSVC>:/W4>
       $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
       $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
-      $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>
+      $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>>
     )
   target_compile_definitions(${name}
     PRIVATE
