@@ -26,30 +26,30 @@ int main() {
 }
 
 void sum() {
-  int sum = 1;
+  int number = 1;
 
-#pragma omp parallel reduction(+ : sum)
-  { ++sum; }
+#pragma omp parallel reduction(+ : number)
+  { ++number; }
 
-  std::cout << "Sum: " << sum << std::endl;
+  std::cout << "Sum: " << number << std::endl;
 }
 
 void subtract() {
-  int sum = 10;
+  int number = 10;
 
-#pragma omp parallel reduction(- : sum)
-  { --sum; }
+#pragma omp parallel reduction(- : number)
+  { --number; }
 
-  std::cout << "Subtract: " << sum << std::endl;
+  std::cout << "Subtract: " << number << std::endl;
 }
 
 void multiply() {
-  int mult = 10;
+  int number = 10;
 
-#pragma omp parallel reduction(* : mult)
-  { ++mult; }
+#pragma omp parallel reduction(* : number)
+  { ++number; }
 
-  std::cout << "Multiply: " << mult << std::endl;
+  std::cout << "Multiply: " << number << std::endl;
 }
 
 #if _OPENMP >= 200805
