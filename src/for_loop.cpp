@@ -1,47 +1,41 @@
-#include <cstdio>
 #include <omp.h>
 
-void SingleForLoopWithMaxNumThreads(int numLoops);
-void SingleForLoopWithTwoThreads(int numLoops);
-void DoubleForLoopsWithMaxNumThreads(int numOuterLoops, int numInnerLoops);
+#include <cstdio>
+#include <iostream>
+#include <sstream>
+
+void SingleForLoop();
+void DoubleForLoops();
 
 int main() {
-  printf("Maximum number of threads = %d\n\n", omp_get_max_threads());
-
-  SingleForLoopWithMaxNumThreads(10);
-  SingleForLoopWithTwoThreads(10);
-  DoubleForLoopsWithMaxNumThreads(10, 2);
+  SingleForLoop();
+  DoubleForLoops();
 }
 
-void SingleForLoopWithMaxNumThreads(int numLoops) {
-  printf("[Single for-loop with %d threads]\n", omp_get_max_threads());
+void SingleForLoop() {
+  const int n = omp_get_max_threads();
+  printf("Single for-loop with %d threads:\n", n);
 
 #pragma omp parallel for
-  for (int i = 0; i < numLoops; ++i) {
-    printf("thread = %d, loop counter = %d\n", omp_get_thread_num(), i);
+  for (int i = 0; i < n; ++i) {
+    std::stringstream ss;
+    ss << '[' << omp_get_thread_num() << "] " << i << '\n';
+    std::cout << ss.str();
   }
-  printf("\n");
 }
 
-void SingleForLoopWithTwoThreads(int numLoops) {
-  printf("[Single for-loop with %d threads]\n", 2);
-
-#pragma omp parallel for num_threads(2)
-  for (int i = 0; i < numLoops; ++i) {
-    printf("thread = %d, loop counter = %d\n", omp_get_thread_num(), i); 
-  }
-  printf("\n");
-}
-
-void DoubleForLoopsWithMaxNumThreads(int numOuterLoops, int numInnerLoops) {
-  printf("[Double for-loops with %d threads]\n", omp_get_max_threads());
+void DoubleForLoops() {
+  const int n = omp_get_max_threads();
+  printf("Double for-loops with %d threads:\n", n);
 
 #pragma omp parallel for
-  for (int i = 0; i < numOuterLoops; ++i) {
-    const auto id = omp_get_thread_num();
-    for (int j = 0; j < numInnerLoops; ++j) {
-      printf("thread = %d, outer loop counter = %d, inner loop counter = %d\n", omp_get_thread_num(), i, j);
+  for (int i = 0; i < n; ++i) {
+    std::stringstream ss;
+    ss << '[' << omp_get_thread_num() << ']';
+    for (int j = 0; j < 4; ++j) {
+      ss << ' ' << j;
     }
+    ss << '\n';
+    std::cout << ss.str();
   }
-  printf("\n");
 }
