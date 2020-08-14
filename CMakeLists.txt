@@ -11,3 +11,4 @@ endfunction()
 
 add_example(for_loop)
 add_example(gather)
+add_example(reduction)
