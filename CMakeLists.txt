@@ -26,3 +26,22 @@ endfunction()
 add_example(for_loop)
 add_example(gather)
 add_example(reduction)
+
+add_executable(comparison src/comparison.cpp)
+target_compile_features(comparison
+  PRIVATE
+    cxx_std_11
+  )
+target_compile_options(comparison
+  PRIVATE
+    ${OpenMP_CXX_FLAGS}
+    # /EHsc: MSVC PPL library
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /EHsc>
+    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
+    $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>>
+  )
+target_compile_definitions(comparison
+  PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
+  )
