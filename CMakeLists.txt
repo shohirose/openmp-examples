@@ -9,5 +9,5 @@ function(add_example name)
   target_compile_options(${name} PUBLIC ${OpenMP_CXX_FLAGS})
 endfunction()
 
-add_example(example1)
+add_example(for_loop)
 add_example(gather)
