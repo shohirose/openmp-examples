@@ -10,3 +10,4 @@ function(add_example name)
 endfunction()
 
 add_example(example1)
+add_example(gather)
