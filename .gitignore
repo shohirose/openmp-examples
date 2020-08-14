@@ -32,5 +32,9 @@
 *.app
 
 # For MSVC
-./out/
-./.vs/
+out/
+.vs/
+.vscode/
+
+# CMake
+build/
