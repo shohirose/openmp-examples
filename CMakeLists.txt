@@ -5,8 +5,22 @@ find_package(OpenMP REQUIRED)
 
 function(add_example name)
   add_executable(${name} src/${name}.cpp)
-  target_compile_features(${name} PUBLIC cxx_std_11)
-  target_compile_options(${name} PUBLIC ${OpenMP_CXX_FLAGS})
+  target_compile_features(${name}
+    PUBLIC
+      cxx_std_11
+    )
+  target_compile_options(${name}
+    PUBLIC
+      ${OpenMP_CXX_FLAGS}
+      $<$<CXX_COMPILER_ID:MSVC>:/W4>
+      $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+      $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
+      $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>
+    )
+  target_compile_definitions(${name}
+    PRIVATE
+      $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
+    )
 endfunction()
 
 add_example(for_loop)
