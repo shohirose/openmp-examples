@@ -1,19 +1,16 @@
 #include <omp.h>
 
+// Microsoft PPL is only available for MSVC
 #ifdef _MSC_VER
 #include <ppl.h>  // concurrency::parallel_for_each, combinable
 #endif            // _MSC_VER
 
 #include <algorithm>  // std::count_if
 #include <chrono>     // std::chrono
+#include <execution>  // std::execution
 #include <iomanip>    // std::setw
 #include <iostream>   // std::cout, endl
-#include <random>     // std::random_devide, mt19937, uniform_real_distribution
-
-// For parallel STL
-#if __cplusplus >= 201703L
-#include <execution>  // std::execution
-#endif                // __cplusplus >=201703L
+#include <random>     // std::random_device, mt19937, uniform_real_distribution
 
 /// @brief Point in two dimensions
 struct Point {
@@ -32,8 +29,6 @@ struct Point {
 
 class PointGenerator {
  public:
-  using result_type = std::vector<Point>;
-
   PointGenerator(std::size_t numberOfPoints)
       : numberOfPoints_{numberOfPoints} {}
 
@@ -65,110 +60,96 @@ class PointGenerator {
   std::size_t numberOfPoints_;
 };
 
-/// @brief Calculates Pi using Monte Carlo method in serial.
-class SerialPiCalculator {
+/// @brief Calculates pi by using the Monte Carlo Method.
+/// @tparam Counter Functor which counts the number of points in a circle.
+class PiCalculator {
  public:
-  using result_type = double;
-
   /// @param[in] points Points in a region of [0,1]x[0,1]
-  SerialPiCalculator(const std::vector<Point> &points) : points_{points} {}
+  PiCalculator(const std::vector<Point> &points) : points_{points} {}
 
-  /// @brief Computes Pi
-  double operator()() const {
-    const auto numberOfPointsInCircle =
-        std::count_if(begin(points_), end(points_),
-                      [](const Point &point) { return point.rsqr() <= 1.0; });
-    return 4 * static_cast<double>(numberOfPointsInCircle) / points_.size();
+  template <typename Counter>
+  double operator()(Counter &&counter) const noexcept {
+    const auto numberOfPointsInCircle = counter(points_);
+    const auto totalNumberOfPoints = points_.size();
+    return 4.0 * numberOfPointsInCircle / totalNumberOfPoints;
   }
 
  private:
   const std::vector<Point> &points_;
+};
+
+/// @brief Count the number of points in a circle in serial.
+struct SerialCounter {
+  size_t operator()(const std::vector<Point> &points) const noexcept {
+    return std::count_if(begin(points), end(points), [](const Point &point) {
+      return point.rsqr() <= 1.0;
+    });
+  }
 };
 
 #ifdef _MSC_VER
-/// @brief Calculates Pi using Monte Carlo method by using Microsoft PPL
-struct PplPiCalculator {
- public:
-  using result_type = double;
-
-  /// @param[in] points Points in a region of [0,1]x[0,1]
-  PplPiCalculator(const std::vector<Point> &points) : points_{points} {}
-
-  /// @brief Computes Pi
-  double operator()() const {
+/// @brief Count the number of points in a circle by using Microsoft PPL.
+struct MicrosoftPPLCounter {
+  size_t operator()(const std::vector<Point> &points) const noexcept {
     using concurrency::combinable;
     using concurrency::parallel_for_each;
     combinable<size_t> count;
-    parallel_for_each(begin(points_), end(points_),
-                      [&count](const Point &point) {
-                        if (point.rsqr() <= 1.0) count.local() += 1;
-                      });
-    const auto numberOfPointsInCircle = count.combine(std::plus<size_t>());
-    return 4 * static_cast<double>(numberOfPointsInCircle) / points_.size();
+    parallel_for_each(begin(points), end(points), [&count](const Point &point) {
+      if (point.rsqr() <= 1.0) count.local() += 1;
+    });
+    return count.combine(std::plus<size_t>());
   }
-
- private:
-  const std::vector<Point> &points_;
 };
 #endif  // _MSC_VER
 
-/// @brief Calculates Pi using Monte Carlo method by using OpenMP
-struct OmpPiCalculator {
+/// @brief Count the number of points in a circle by using OpenMP
+struct OpenMPCounter {
  public:
-  using result_type = double;
-
-  /// @param[in] points Points in a region of [0,1]x[0,1]
-  OmpPiCalculator(const std::vector<Point> &points) : points_{points} {}
-
-  /// @brief Computes Pi
-  double operator()() const {
-    std::int64_t numberOfPointsInCircle = 0;
-    const auto numberOfPoints = static_cast<std::int64_t>(points_.size());
+  size_t operator()(const std::vector<Point> &points) const noexcept {
+    std::size_t numberOfPointsInCircle = 0;
+    const auto numberOfPoints = static_cast<std::int64_t>(points.size());
 
 #pragma omp parallel for reduction(+ : numberOfPointsInCircle)
     for (std::int64_t i = 0; i < numberOfPoints; ++i) {
-      if (points_[i].rsqr() <= 1.0) ++numberOfPointsInCircle;
+      if (points[i].rsqr() <= 1.0) ++numberOfPointsInCircle;
     }
 
-    return 4 * static_cast<double>(numberOfPointsInCircle) / numberOfPoints;
+    return numberOfPointsInCircle;
   }
-
- private:
-  const std::vector<Point> &points_;
 };
 
-#if __cplusplus >= 201703L
-class ParallelStlPiCalculator {
- public:
-  using result_type = double;
-
-  ParallelStlPiCalculator(const std::vector<Point> &points) : points_{points} {}
-
-  double operator()() const {
+struct ParallelSTLCounter {
+  size_t operator()(const std::vector<Point> &points) const noexcept {
     using std::execution::par_unseq;
-    const auto numberOfPointsInCircle =
-        std::count_if(par_unseq, begin(points_), end(points_),
-                      [](const Point &point) { return point.rsqr() <= 1.0; });
-    return 4 * static_cast<double>(numberOfPointsInCircle) / points_.size();
+    return std::count_if(
+        par_unseq, begin(points), end(points),
+        [](const Point &point) { return point.rsqr() <= 1.0; });
   }
-
- private:
-  const std::vector<Point> &points_;
 };
-#endif  // __cplusplus >=201703L
 
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
-/// @brief Measures the execution time of a given functor.
-template <typename F>
-std::pair<microseconds, typename F::result_type> measureExecTime(F &&f) {
+/// @brief Measures the execution time of PointGenerator.
+std::pair<microseconds, std::vector<Point>> measureExecTime(
+    const PointGenerator &f) noexcept {
   using std::chrono::system_clock;
   const auto start = system_clock::now();
-  const auto result = f();
+  const auto points = f();
   const auto end = system_clock::now();
-  return {duration_cast<microseconds>(end - start), result};
+  return {duration_cast<microseconds>(end - start), points};
+}
+
+/// @brief Measures the execution time of PiCalculator.
+template <typename Counter>
+std::pair<microseconds, double> measureExecTime(const PiCalculator &f,
+                                                Counter &&counter) noexcept {
+  using std::chrono::system_clock;
+  const auto start = system_clock::now();
+  const auto pi = f(std::forward<Counter>(counter));
+  const auto end = system_clock::now();
+  return {duration_cast<microseconds>(end - start), pi};
 }
 
 int main() {
@@ -180,14 +161,13 @@ int main() {
   std::cout << "Points Generation: time = " << time0.count() << " usec"
             << std::endl;
 
-  const auto [time1, pi1] = measureExecTime(SerialPiCalculator(points));
+  const PiCalculator calculator(points);
+  const auto [time1, pi1] = measureExecTime(calculator, SerialCounter{});
 #ifdef _MSC_VER
-  const auto [time2, pi2] = measureExecTime(PplPiCalculator(points));
+  const auto [time2, pi2] = measureExecTime(calculator, MicrosoftPPLCounter{});
 #endif  // _MSC_VER
-  const auto [time3, pi3] = measureExecTime(OmpPiCalculator(points));
-#if __cplusplus >= 201703L
-  const auto [time4, pi4] = measureExecTime(ParallelStlPiCalculator(points));
-#endif  // __cplusplus >=201703L
+  const auto [time3, pi3] = measureExecTime(calculator, OpenMPCounter{});
+  const auto [time4, pi4] = measureExecTime(calculator, ParallelSTLCounter{});
 
   std::cout << "Serial: time = " << std::setw(10) << time1.count()
             << " usec, pi = " << pi1
@@ -196,10 +176,6 @@ int main() {
             << " usec, pi = " << pi2
 #endif  // _MSC_VER
             << "\nOpenMP: time = " << std::setw(10) << time3.count()
-            << " usec, pi = " << pi3
-#if __cplusplus >= 201703L
-            << "\nSTL   : time = " << std::setw(10) << time4.count()
-            << " usec, pi = " << pi4
-#endif  // __cplusplus >=201703L
-            << std::endl;
+            << " usec, pi = " << pi3 << "\nSTL   : time = " << std::setw(10)
+            << time4.count() << " usec, pi = " << pi4 << std::endl;
 }
