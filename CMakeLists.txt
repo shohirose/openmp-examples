@@ -35,8 +35,9 @@ target_compile_features(comparison
 target_compile_options(comparison
   PRIVATE
     ${OpenMP_CXX_FLAGS}
-    # /EHsc: MSVC PPL library
-    # /Zc:__cplusplus: Update __cplusplus value according to c++ version
+    # /EHsc: For Microsoft PPL library
+    # (Ref: https://docs.microsoft.com/ja-jp/cpp/parallel/concrt/parallel-algorithms?view=vs-2019#the-parallel_for_each-algorithm)
+    # /Zc:__cplusplus: Updates __cplusplus value according to c++ version
     # (Ref: https://docs.microsoft.com/ja-jp/cpp/build/reference/zc-cplusplus?view=vs-2019)
     $<$<CXX_COMPILER_ID:MSVC>:/W4 /EHsc /Zc:__cplusplus>
     $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
