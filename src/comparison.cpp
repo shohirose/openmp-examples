@@ -61,12 +61,15 @@ class PointGenerator {
 };
 
 /// @brief Calculates pi by using the Monte Carlo Method.
-/// @tparam Counter Functor which counts the number of points in a circle.
 class PiCalculator {
  public:
   /// @param[in] points Points in a region of [0,1]x[0,1]
   PiCalculator(const std::vector<Point> &points) : points_{points} {}
 
+  /// @brief Computes pi
+  /// @tparam Counter Functor which counts the number of points in a circle.
+  /// @param[in] counter Point counter
+  /// @returns Pi
   template <typename Counter>
   double operator()(Counter &&counter) const noexcept {
     const auto numberOfPointsInCircle = counter(points_);
@@ -78,7 +81,7 @@ class PiCalculator {
   const std::vector<Point> &points_;
 };
 
-/// @brief Count the number of points in a circle in serial.
+/// @brief Counts the number of points in a circle in serial.
 struct SerialCounter {
   size_t operator()(const std::vector<Point> &points) const noexcept {
     return std::count_if(begin(points), end(points), [](const Point &point) {
@@ -88,7 +91,7 @@ struct SerialCounter {
 };
 
 #ifdef _MSC_VER
-/// @brief Count the number of points in a circle by using Microsoft PPL.
+/// @brief Counts the number of points in a circle by using Microsoft PPL.
 struct MicrosoftPPLCounter {
   size_t operator()(const std::vector<Point> &points) const noexcept {
     using concurrency::combinable;
@@ -104,7 +107,6 @@ struct MicrosoftPPLCounter {
 
 /// @brief Count the number of points in a circle by using OpenMP
 struct OpenMPCounter {
- public:
   size_t operator()(const std::vector<Point> &points) const noexcept {
     std::size_t numberOfPointsInCircle = 0;
     const auto numberOfPoints = static_cast<std::int64_t>(points.size());
@@ -118,6 +120,7 @@ struct OpenMPCounter {
   }
 };
 
+/// @brief Counts the number of points in a circle by using Parallel STL.
 struct ParallelSTLCounter {
   size_t operator()(const std::vector<Point> &points) const noexcept {
     using std::execution::par_unseq;
