@@ -176,31 +176,30 @@ int main() {
 
   std::cout << "Number of points: " << numberOfPoints << std::endl;
 
-  const auto result0 = measureExecTime(PointGenerator(numberOfPoints));
-  const auto &points = result0.second;
-  std::cout << "Points Generation: time = " << result0.first.count() << " usec"
+  const auto [time0, points] = measureExecTime(PointGenerator(numberOfPoints));
+  std::cout << "Points Generation: time = " << time0.count() << " usec"
             << std::endl;
 
-  const auto result1 = measureExecTime(SerialPiCalculator(points));
+  const auto [time1, pi1] = measureExecTime(SerialPiCalculator(points));
 #ifdef _MSC_VER
-  const auto result2 = measureExecTime(PplPiCalculator(points));
+  const auto [time2, pi2] = measureExecTime(PplPiCalculator(points));
 #endif  // _MSC_VER
-  const auto result3 = measureExecTime(OmpPiCalculator(points));
+  const auto [time3, pi3] = measureExecTime(OmpPiCalculator(points));
 #if __cplusplus >= 201703L
-  const auto result4 = measureExecTime(ParallelStlPiCalculator(points));
+  const auto [time4, pi4] = measureExecTime(ParallelStlPiCalculator(points));
 #endif  // __cplusplus >=201703L
 
-  std::cout << "Serial: time = " << std::setw(10) << result1.first.count()
-            << " usec, pi = " << result1.second
+  std::cout << "Serial: time = " << std::setw(10) << time1.count()
+            << " usec, pi = " << pi1
 #ifdef _MSC_VER
-            << "\nPPL   : time = " << std::setw(10) << result2.first.count()
-            << " usec, pi = " << result2.second
+            << "\nPPL   : time = " << std::setw(10) << time2.count()
+            << " usec, pi = " << pi2
 #endif  // _MSC_VER
-            << "\nOpenMP: time = " << std::setw(10) << result3.first.count()
-            << " usec, pi = " << result3.second
+            << "\nOpenMP: time = " << std::setw(10) << time3.count()
+            << " usec, pi = " << pi3
 #if __cplusplus >= 201703L
-            << "\nSTL   : time = " << std::setw(10) << result4.first.count()
-            << " usec, pi = " << result4.second
+            << "\nSTL   : time = " << std::setw(10) << time4.count()
+            << " usec, pi = " << pi4
 #endif  // __cplusplus >=201703L
             << std::endl;
 }
