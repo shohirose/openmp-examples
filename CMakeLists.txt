@@ -11,7 +11,6 @@ function(add_example name)
     )
   target_compile_options(${name}
     PUBLIC
-      ${OpenMP_CXX_FLAGS}
       $<$<CXX_COMPILER_ID:MSVC>:/W4>
       $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
       $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
@@ -20,6 +19,10 @@ function(add_example name)
   target_compile_definitions(${name}
     PRIVATE
       $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
+    )
+  target_link_libraries(${name}
+    PRIVATE
+      OpenMP::OpenMP_CXX
     )
 endfunction()
 
@@ -34,7 +37,6 @@ target_compile_features(comparison
   )
 target_compile_options(comparison
   PRIVATE
-    ${OpenMP_CXX_FLAGS}
     # /EHsc: For Microsoft PPL library
     # (Ref: https://docs.microsoft.com/ja-jp/cpp/parallel/concrt/parallel-algorithms?view=vs-2019#the-parallel_for_each-algorithm)
     # /Zc:__cplusplus: Updates __cplusplus value according to c++ version
@@ -47,4 +49,8 @@ target_compile_options(comparison
 target_compile_definitions(comparison
   PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
+  )
+target_link_libraries(comparison
+  PRIVATE
+    OpenMP::OpenMP_CXX
   )
