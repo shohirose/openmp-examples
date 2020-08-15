@@ -1,13 +1,19 @@
 #include <omp.h>
 
 #ifdef _MSC_VER
-#include <ppl.h>
-#endif  // _MSC_VER
+#include <ppl.h>  // concurrency::parallel_for_each, combinable
+#endif            // _MSC_VER
 
-#include <chrono>
-#include <iomanip>
-#include <iostream>
-#include <random>
+#include <algorithm>  // std::count_if
+#include <chrono>     // std::chrono
+#include <iomanip>    // std::setw
+#include <iostream>   // std::cout, endl
+#include <random>     // std::random_devide, mt19937, uniform_real_distribution
+
+// For parallel STL
+#if __cplusplus >= 201703L
+#include <execution>  // std::execution
+#endif                // __cplusplus >=201703L
 
 /// @brief Point in two dimensions
 struct Point {
@@ -69,12 +75,10 @@ class SerialPiCalculator {
 
   /// @brief Computes Pi
   double operator()() const {
-    size_t numberOfPointsInCircle = 0;
-    const auto numberOfPoints = points_.size();
-    for (auto &&point : points_) {
-      if (point.rsqr() <= 1.0) ++numberOfPointsInCircle;
-    }
-    return 4 * static_cast<double>(numberOfPointsInCircle) / numberOfPoints;
+    const auto numberOfPointsInCircle =
+        std::count_if(begin(points_), end(points_),
+                      [](const Point &point) { return point.rsqr() <= 1.0; });
+    return 4 * static_cast<double>(numberOfPointsInCircle) / points_.size();
   }
 
  private:
@@ -133,6 +137,26 @@ struct OmpPiCalculator {
   const std::vector<Point> &points_;
 };
 
+#if __cplusplus >= 201703L
+class ParallelStlPiCalculator {
+ public:
+  using result_type = double;
+
+  ParallelStlPiCalculator(const std::vector<Point> &points) : points_{points} {}
+
+  double operator()() const {
+    using std::execution::par_unseq;
+    const auto numberOfPointsInCircle =
+        std::count_if(par_unseq, begin(points_), end(points_),
+                      [](const Point &point) { return point.rsqr() <= 1.0; });
+    return 4 * static_cast<double>(numberOfPointsInCircle) / points_.size();
+  }
+
+ private:
+  const std::vector<Point> &points_;
+};
+#endif  // __cplusplus >=201703L
+
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
@@ -162,6 +186,9 @@ int main() {
   const auto result2 = measureExecTime(PplPiCalculator(points));
 #endif  // _MSC_VER
   const auto result3 = measureExecTime(OmpPiCalculator(points));
+#if __cplusplus >= 201703L
+  const auto result4 = measureExecTime(ParallelStlPiCalculator(points));
+#endif  // __cplusplus >=201703L
 
   std::cout << "Serial: time = " << std::setw(10) << result1.first.count()
             << " usec, pi = " << result1.second
@@ -170,5 +197,10 @@ int main() {
             << " usec, pi = " << result2.second
 #endif  // _MSC_VER
             << "\nOpenMP: time = " << std::setw(10) << result3.first.count()
-            << " usec, pi = " << result3.second << std::endl;
+            << " usec, pi = " << result3.second
+#if __cplusplus >= 201703L
+            << "\nSTL   : time = " << std::setw(10) << result4.first.count()
+            << " usec, pi = " << result4.second
+#endif  // __cplusplus >=201703L
+            << std::endl;
 }

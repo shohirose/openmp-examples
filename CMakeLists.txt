@@ -30,13 +30,15 @@ add_example(reduction)
 add_executable(comparison src/comparison.cpp)
 target_compile_features(comparison
   PRIVATE
-    cxx_std_11
+    cxx_std_17
   )
 target_compile_options(comparison
   PRIVATE
     ${OpenMP_CXX_FLAGS}
     # /EHsc: MSVC PPL library
-    $<$<CXX_COMPILER_ID:MSVC>:/W4 /EHsc>
+    # /Zc:__cplusplus: Update __cplusplus value according to c++ version
+    # (Ref: https://docs.microsoft.com/ja-jp/cpp/build/reference/zc-cplusplus?view=vs-2019)
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /EHsc /Zc:__cplusplus>
     $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>>
