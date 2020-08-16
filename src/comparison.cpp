@@ -130,6 +130,7 @@ struct ParallelSTLCounter {
   }
 };
 
+using std::chrono::system_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
@@ -137,7 +138,6 @@ using std::chrono::microseconds;
 /// @brief Measures the execution time of PointGenerator.
 std::pair<microseconds, std::vector<Point>> measureExecTime(
     const PointGenerator &f) noexcept {
-  using std::chrono::system_clock;
   const auto start = system_clock::now();
   const auto points = f();
   const auto end = system_clock::now();
@@ -148,7 +148,6 @@ std::pair<microseconds, std::vector<Point>> measureExecTime(
 template <typename Counter>
 std::pair<microseconds, double> measureExecTime(const PiCalculator &f,
                                                 Counter &&counter) noexcept {
-  using std::chrono::system_clock;
   const auto start = system_clock::now();
   const auto pi = f(std::forward<Counter>(counter));
   const auto end = system_clock::now();
