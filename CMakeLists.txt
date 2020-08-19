@@ -30,27 +30,29 @@ add_example(for_loop)
 add_example(gather)
 add_example(reduction)
 
-add_executable(comparison src/comparison.cpp)
-target_compile_features(comparison
+find_package(benchmark REQUIRED)
+
+add_executable(parallel_benchmark benchmark/parallel_benchmark.cpp)
+target_compile_features(parallel_benchmark
   PRIVATE
     cxx_std_17
   )
-target_compile_options(comparison
+target_compile_options(parallel_benchmark
   PRIVATE
     # /EHsc: For Microsoft PPL library
     # (Ref: https://docs.microsoft.com/ja-jp/cpp/parallel/concrt/parallel-algorithms?view=vs-2019#the-parallel_for_each-algorithm)
-    # /Zc:__cplusplus: Updates __cplusplus value according to c++ version
-    # (Ref: https://docs.microsoft.com/ja-jp/cpp/build/reference/zc-cplusplus?view=vs-2019)
-    $<$<CXX_COMPILER_ID:MSVC>:/W4 /EHsc /Zc:__cplusplus>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /EHsc>
     $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>>
   )
-target_compile_definitions(comparison
+target_compile_definitions(parallel_benchmark
   PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
   )
-target_link_libraries(comparison
+target_link_libraries(parallel_benchmark
   PRIVATE
     OpenMP::OpenMP_CXX
+    benchmark::benchmark
+    $<$<CXX_COMPILER_ID:MSVC>:shlwapi>
   )
