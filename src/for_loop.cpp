@@ -1,18 +1,17 @@
 #include <omp.h>
 
-#include <cstdio>
 #include <iostream>
 #include <sstream>
 
-void SingleForLoop();
-void DoubleForLoops();
+void singleForLoop();
+void doubleForLoops();
 
 int main() {
-  SingleForLoop();
-  DoubleForLoops();
+  singleForLoop();
+  doubleForLoops();
 }
 
-void SingleForLoop() {
+void singleForLoop() {
   const int n = omp_get_max_threads();
   printf("Single for-loop with %d threads:\n", n);
 
@@ -24,7 +23,7 @@ void SingleForLoop() {
   }
 }
 
-void DoubleForLoops() {
+void doubleForLoops() {
   const int n = omp_get_max_threads();
   printf("Double for-loops with %d threads:\n", n);
 
