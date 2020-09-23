@@ -4,21 +4,21 @@
 #include <sstream>
 #include <vector>
 
-void gatherStdVector();
-
-int main() { gatherStdVector(); }
-
-void gatherStdVector() {
+// Gathers slave vectors into the master vector.
+int main() {
   std::vector<int> master;
-  const int n = omp_get_num_procs() * 2;
-  std::cout << "slave std::vectors:\n";
+
+  std::cout << "slave vectors:\n";
 
 #pragma omp parallel
   {
     std::vector<int> slave;
+    const int numProcs = omp_get_num_procs() * 2;
+    const int threadId = omp_get_thread_num();
+
 #pragma omp for
-    for (int i = 0; i < n; ++i) {
-      slave.push_back(omp_get_thread_num());
+    for (int i = 0; i < numProcs; ++i) {
+      slave.push_back(threadId);
     }
 
 #pragma omp critical
@@ -26,7 +26,9 @@ void gatherStdVector() {
       // Prints slaves
       std::stringstream ss;
       ss << '[' << omp_get_thread_num() << ']';
-      for (auto value : slave) ss << ' ' << value;
+      for (auto value : slave) {
+        ss << ' ' << value;
+      }
       ss << '\n';
       std::cout << ss.str();
 
@@ -37,7 +39,9 @@ void gatherStdVector() {
     }
   }
 
-  std::cout << "master std::vector\n";
-  for (auto value : master) std::cout << value << ' ';
+  std::cout << "master vector\n";
+  for (auto value : master) {
+    std::cout << value << ' ';
+  }
   std::cout << '\n' << std::flush;
 }
