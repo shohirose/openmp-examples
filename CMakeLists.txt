@@ -32,7 +32,14 @@ add_example(reduction)
 
 find_package(benchmark REQUIRED)
 
-add_executable(parallel_benchmark benchmark/parallel_benchmark.cpp)
+add_executable(parallel_benchmark
+  benchmark/parallel_benchmark.cpp
+  benchmark/function.cpp
+  )
+target_include_directories(parallel_benchmark
+  PRIVATE
+    benchmark
+  )
 target_compile_features(parallel_benchmark
   PRIVATE
     cxx_std_17
