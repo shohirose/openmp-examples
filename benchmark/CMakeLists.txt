@@ -26,6 +26,5 @@ target_compile_definitions(parallel_benchmark
 target_link_libraries(parallel_benchmark
   PRIVATE
     OpenMP::OpenMP_CXX
-    benchmark::benchmark
-    $<$<CXX_COMPILER_ID:MSVC>:shlwapi>
+    benchmark::benchmark_main
   )
