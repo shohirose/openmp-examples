@@ -1,6 +1,6 @@
 add_executable(parallel_benchmark
-    ${CMAKE_CURRENT_SOURCE_DIR}/parallel_benchmark.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/function.cpp
+    parallel_benchmark.cpp
+    function.cpp
   )
 target_compile_features(parallel_benchmark
   PRIVATE
