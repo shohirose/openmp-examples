@@ -19,7 +19,7 @@ std::vector<Point> generatePoints(std::size_t numPoints) noexcept {
 
 #pragma omp for
     for (std::int64_t i = 0; i < n; ++i) {
-      auto& point = points[i];
+      auto& point = points[static_cast<std::size_t>(i)];
       point.x = dist(engine);
       point.y = dist(engine);
     }
