@@ -14,7 +14,7 @@ target_compile_options(parallel_benchmark
   PRIVATE
     # /EHsc: For Microsoft PPL library
     # (Ref: https://docs.microsoft.com/ja-jp/cpp/parallel/concrt/parallel-algorithms?view=vs-2019#the-parallel_for_each-algorithm)
-    $<$<CXX_COMPILER_ID:MSVC>:/W4 /EHsc>
+    $<$<CXX_COMPILER_ID:MSVC>:/W3 /EHsc>
     $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>>
@@ -26,5 +26,5 @@ target_compile_definitions(parallel_benchmark
 target_link_libraries(parallel_benchmark
   PRIVATE
     OpenMP::OpenMP_CXX
-    benchmark::benchmark_main
+    benchmark::benchmark
   )

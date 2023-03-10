@@ -8,7 +8,7 @@ function(add_example name)
     )
   target_compile_options(${name}
     PUBLIC
-      $<$<CXX_COMPILER_ID:MSVC>:/W4>
+      $<$<CXX_COMPILER_ID:MSVC>:/W3>
       $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
       $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
       $<$<CXX_COMPILER_ID:Intel>:$<IF:$<PLATFORM_ID:Windows>,/warn:all,-warn all>>
